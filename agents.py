@@ -4,7 +4,7 @@ from langchain_groq import ChatGroq  # Import Groq client
 from langchain_openai import ChatOpenAI
 import os
 from crewai_tools import SerperDevTool,WebsiteSearchTool, ScrapeWebsiteTool 
-
+from langchain_community.llms import Ollama
 
 
 class ResearchCrewAgents:
@@ -15,10 +15,14 @@ class ResearchCrewAgents:
         self.web = WebsiteSearchTool()
         self.web_scrape=ScrapeWebsiteTool()
 
+       #Local Models
+        self.local_llama3 = Ollama(model="llama3")
 
        # OpenAI Models
         self.gpt3 = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
         self.gpt4 = ChatOpenAI(model_name="gpt-4-turbo", temperature=0.7)
+        self.gpt4o = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
+
         self.gpt3_5_turbo_0125 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0.7)
         self.gpt3_5_turbo_1106 = ChatOpenAI(model_name="gpt-3.5-turbo-1106", temperature=0.7)
         self.gpt3_5_turbo_instruct = ChatOpenAI(model_name="gpt-3.5-turbo-instruct", temperature=0.7)
@@ -30,7 +34,7 @@ class ResearchCrewAgents:
         self.gemma_7b = ChatGroq(temperature=0.7, groq_api_key=os.environ.get("GROQ_API_KEY"), model_name="gemma-7b-it")
         
         # CHANGE YOUR MODEL HERE
-        self.selected_llm = self.gpt4
+        self.selected_llm = self.local_llama3
     def researcher(self):
     # Detailed agent setup for the Research Expert
         return Agent(
@@ -40,8 +44,11 @@ class ResearchCrewAgents:
         verbose=True,
         allow_delegation=False,
         llm=self.selected_llm,
-        max_iter=3,
-        tools=[self.serper, self.web, self.web_scrape],
+        max_iter=1,
+        #tools=[self.serper, self.web, self.web_scrape],
+        system_template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{{ .System }}<|eot_id|>""",
+        prompt_template="""<|start_header_id|>user<|end_header_id|>{{ .Prompt }}<|eot_id|>""",
+        response_template="""<|start_header_id|>assistant<|end_header_id|>{{ .Response }}<|eot_id|>""",
         ) 
 
 
@@ -54,7 +61,10 @@ class ResearchCrewAgents:
             verbose=True,
             allow_delegation=False,
             llm=self.selected_llm,
-            max_iter=3,
+            max_iter=1,
+            system_template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{{ .System }}<|eot_id|>""",
+            prompt_template="""<|start_header_id|>user<|end_header_id|>{{ .Prompt }}<|eot_id|>""",
+            response_template="""<|start_header_id|>assistant<|end_header_id|>{{ .Response }}<|eot_id|>""",
 
 
         )
@@ -69,7 +79,10 @@ class ResearchCrewAgents:
             allow_delegation=False,
             llm=self.selected_llm,
             tools=[self.serper, self.web, self.web_scrape],
-            max_iter=3,
+            max_iter=4,
+            system_template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{{ .System }}<|eot_id|>""",
+            prompt_template="""<|start_header_id|>user<|end_header_id|>{{ .Prompt }}<|eot_id|>""",
+            response_template="""<|start_header_id|>assistant<|end_header_id|>{{ .Response }}<|eot_id|>""",
 
 
         )
